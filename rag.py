@@ -28,7 +28,7 @@ class RagChat:
         self.basePrompt = PromptTemplate.from_template(
             """
                 <s> [INST] You are a highly knowledgeable assistant for question-answering tasks.
-                Provide a concise answer in four sentences maximum. If you cannot get the answer from context, find it in your own data[/INST] </s> 
+                Provide a concise answer in four sentences maximum. Answer based on your knowledge [/INST] </s> 
                 [INST] Chat History: {history} [/INST]
                 [INST] Question: {question} [/INST]
                 [INST] Answer: 

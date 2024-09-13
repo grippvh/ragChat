@@ -2,7 +2,7 @@ import os
 import shutil
 
 from langchain_community.embeddings import JinaEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from config import Config
 
 
@@ -35,4 +35,4 @@ class VectorStoreManager:
                 src_file = os.path.join(Config.DATA_PATH, file_name)
                 dst_file = os.path.join(Config.UNUSED_DATA_PATH, file_name)
                 shutil.move(src_file, dst_file)
-        self.vector_store.delete_collection()
+        self.vector_store.reset_collection()
