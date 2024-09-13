@@ -1,9 +1,10 @@
 import os
 import shutil
-import stat
 
 from langchain_community.embeddings import JinaEmbeddings
 from langchain_community.vectorstores import Chroma
+from config import Config
+
 
 class VectorStoreManager:
     def __init__(self, db_path, jina_api_key):
@@ -19,9 +20,19 @@ class VectorStoreManager:
         self.vector_store.add_documents(documents=documents)
 
     def similarity_search(self, query, k=5):
-        return self.vector_store.similarity_search_with_score(query, k=k)
+        try:
+            return self.vector_store.similarity_search_with_score(query, k=k)
+        except Exception:
+            return []
 
     def clear(self):
-        shutil.rmtree(self.db_path)
-        os.makedirs(self.db_path)
-        os.chmod(self.db_path, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+        if self.db_path == Config.DB_PATH:
+            # Move files from DATA_PATH to UNUSED_DATA_PATH
+            if not os.path.exists(Config.UNUSED_DATA_PATH):
+                os.makedirs(Config.UNUSED_DATA_PATH)
+
+            for file_name in os.listdir(Config.DATA_PATH):
+                src_file = os.path.join(Config.DATA_PATH, file_name)
+                dst_file = os.path.join(Config.UNUSED_DATA_PATH, file_name)
+                shutil.move(src_file, dst_file)
+        self.vector_store.delete_collection()

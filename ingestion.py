@@ -17,8 +17,17 @@ class Ingestor:
         self.vector_store_manager.add_documents(chunks)
 
     def ingest_url(self, url):
-        response = requests.get(url, headers=Config.REQUEST_HEADERS)
+        response = requests.get(url, headers=Config.REQUEST_HEADERS, stream=True)
+        response.raise_for_status()
+
         soup = BeautifulSoup(response.content, 'html.parser')
         texts = soup.get_text(separator="\n")
+
+        # Check if there's any content to process
+        if not texts.strip():
+            raise Exception("Could not parse the text from url")
+
         chunks = self.text_splitter.create_documents([texts])
         self.vector_store_manager.add_documents(chunks)
+
+
