@@ -19,7 +19,6 @@ class RagChat:
                 <s> [INST] You are a highly knowledgeable assistant for question-answering tasks. Use the following pieces 
                 of retrieved context to answer the question. If you don't know the answer, strictly answer 
                 with "I don't know" only. Provide a concise answer in four sentences maximum.[/INST] </s> 
-                [INST] Chat History: {history} [/INST]
                 [INST] Question: {question} [/INST]
                 [INST] Context: {context} [/INST]
                 [INST] Answer: 
@@ -29,7 +28,6 @@ class RagChat:
             """
                 <s> [INST] You are a highly knowledgeable assistant for question-answering tasks.
                 Provide a concise answer in four sentences maximum. Answer based on your knowledge [/INST] </s> 
-                [INST] Chat History: {history} [/INST]
                 [INST] Question: {question} [/INST]
                 [INST] Answer: 
                 """
