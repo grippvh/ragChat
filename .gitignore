@@ -326,3 +326,8 @@ cython_debug/
 /test_db/8e3d1b3b-656a-4082-841e-0efb44ad0b7d/header.bin
 /test_db/8e3d1b3b-656a-4082-841e-0efb44ad0b7d/length.bin
 /test_db/8e3d1b3b-656a-4082-841e-0efb44ad0b7d/link_lists.bin
+/unused_data/
+/db/
+/data/
+/test_db/
+/db/

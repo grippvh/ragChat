@@ -29,7 +29,9 @@ cd ragChat
 ```
 
 ### 4. Install required libraries
-
+```bash
+pip install -r requirements.txt
+```
 ## Run the application
 ```bash
 ./run.sh
