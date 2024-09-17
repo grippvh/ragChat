@@ -39,7 +39,6 @@ class RagChat:
         results = self.vector_store_manager.similarity_search(query, k=5)
         context = _build_context(results)
         prompt = self.ragPrompt.format(history=history or "No previous conversation.", context=context, question=query)
-        print(prompt)
         response_text = self.model.invoke(prompt).content
         if "i don't know" in response_text.lower():
             return self._ask_with_general_knowledge(query, history)
