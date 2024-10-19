@@ -28,6 +28,8 @@ class Ingestor:
             raise Exception("Could not parse the text from url")
 
         chunks = self.text_splitter.create_documents([texts])
+        # add source for urls for (a) to be shown in ui; (b) for vector store to check if new or was already added
+        for chunk in chunks:
+            chunk.metadata["source"] = url
+
         self.vector_store_manager.add_documents(chunks)
-
-
