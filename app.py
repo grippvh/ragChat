@@ -24,6 +24,11 @@ def process_input():
         st.session_state["messages"].append((agent_text, False))
         st.session_state["user_input"] = ""
 
+def update_sources():
+    """Update the UI to display the current set of sources in the vector store."""
+    sources = st.session_state["assistant"].vector_store_manager.get_sources()
+    st.session_state["sources"] = sources
+
 def read_and_save_file():
     os.makedirs(DATA_FOLDER, exist_ok=True)
     for file in st.session_state["file_uploader"]:
@@ -39,12 +44,16 @@ def read_and_save_file():
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             st.session_state["assistant"].ingestor.ingest_file(file_path)
 
+    update_sources()
+
 def ingest_url():
     url = st.session_state["url_input"].strip()
     if url:
         try:
             with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting content from {url}"):
                 st.session_state["assistant"].ingestor.ingest_url(url)
+
+                update_sources()
 
         except Exception as e:
             st.error(f"Could not open the link: {e}")
@@ -57,19 +66,20 @@ def scan_data_folder():
             file_path = os.path.join(DATA_FOLDER, file_name)
             if not st.session_state["assistant"].vector_store_manager.vector_store.similarity_search(file_name, k=1):
                 st.session_state["assistant"].ingestor.ingest_file(file_path)
-            st.session_state["uploaded_files"].append(file_name)
+
+    update_sources()
 
 def clear_database_and_move_files():
     st.session_state["assistant"].clear()
-    st.session_state["uploaded_files"] = []
     st.success("Database cleared and files moved to 'unused_data'.")
+    update_sources()
 
 def page():
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
         st.session_state["assistant"] = RagChat()
         st.session_state["ingestion_spinner"] = st.empty()
-        st.session_state["uploaded_files"] = []
+        st.session_state["sources"] = []
         scan_data_folder()
 
     st.header("RagChat")
@@ -95,24 +105,17 @@ def page():
 
     st.session_state["ingestion_spinner"] = st.empty()
 
-    # Placeholder to dynamically update the file list
-    file_list_placeholder = st.empty()
-
-    # Render files from the data folder
-    with file_list_placeholder.container():
-        st.subheader("Files from Data folder")
-        if st.session_state["uploaded_files"]:
-            for file_name in st.session_state["uploaded_files"]:
-                st.write(file_name)
-        else:
-            st.write("No files found.")
 
     if st.button("Clear Database"):
         clear_database_and_move_files()
-        # Re-render the file list to reflect the cleared state
-        with file_list_placeholder.container():
-            st.subheader("Files from Data folder")
-            st.write("No files found.")
+
+
+    st.subheader("Sources in Vector Store")
+    if st.session_state["sources"]:
+        for source in st.session_state["sources"]:
+            st.write(source)
+    else:
+        st.write("No sources found in the vector store.")
 
     display_messages()
     st.text_input("Message", key="user_input", on_change=process_input)

@@ -87,11 +87,8 @@ class VectorStoreManager:
 
         return chunks
 
-    def print_sources(self):
-        """
-        Print the set of all unique sources stored in the vector database.
-        """
-        # Retrieve all data from the vector store, including metadata
+
+    def get_sources(self):
         all_data = self.vector_store.get(include=["metadatas"])
 
         # Extract sources from metadata
@@ -103,10 +100,4 @@ class VectorStoreManager:
             else:
                 sources.add("unknown source")
 
-        # Print the unique sources
-        if sources:
-            print("Sources in vector DB:")
-            for source in sources:
-                print(source)
-        else:
-            print("No sources found in the vector DB.")
+        return sources if sources else ["vector base is empty"]
