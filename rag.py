@@ -28,6 +28,7 @@ class RagChat:
                 with "I don't know" only. Provide a concise answer in four sentences maximum.[/INST] </s> 
                 [INST] Question: {question} [/INST]
                 [INST] Context: {context} [/INST]
+                [INST] Conversation history: {history} [/INST]
                 [INST] Answer: 
                 """
         )
@@ -48,6 +49,7 @@ class RagChat:
                 Only make direct references to material if and only if provided in the context. [/INST] </s> 
                 [INST] Question: {question} [/INST]
                 [INST] Context: {context} [/INST]
+                [INST] Conversation history: {history} [/INST]
                 [INST] Answer: 
                 """
         )
@@ -55,22 +57,24 @@ class RagChat:
     def ask(self, query: str, history=None):
         results = self.vector_store_manager.similarity_search(query, k=5)
         context = _build_context(results)
-        prompt = self.ragPrompt.format(history=history or "No previous conversation.", context=context, question=query)
+        is_history_relevant = self.is_history_relevant(query, context, history)
+        history = history if is_history_relevant else "No previous conversation."
+        prompt = self.ragPrompt.format(history=history, context=context, question=query)
         try:
             if self._is_question_related_to_domain(query) is False:
                 return "I am afraid you query is not related to the domain you specified. Please change either the domain or the question."
             response_text = self.model.invoke(prompt).content
             if "i don't know" in response_text.lower():
-                return self._ask_with_general_knowledge(query, history)
+                return self.ask_using_web_search(query, history)
             return response_text
         except Exception as e:
             return "There was an issue connecting to the model service. Please make sure ollama is running and try again later."
 
 
     def ask_using_web_search(self, query, history=None):
-        context = self.web_search_tool.invoke("current men chelsea squad")
+        context = self.web_search_tool.invoke(query)
         print('context', context)
-        prompt = self.web_search_prompt.format(history=history or "No previous conversation.", context=context, question=query)
+        prompt = self.web_search_prompt.format(history=history, context=context, question=query)
         note = "Note: this answer is based on the web search results. \n"
         return note + self.model.invoke(prompt).content
 
@@ -93,6 +97,25 @@ class RagChat:
         similarity = self.classifier(sequence_to_classify, candidate_labels)['scores'][0]
 
         return similarity > 0.1 # classifier is kinda strict so taking lower threshold
+
+    def is_history_relevant(self, query: str, context: str, history: str) -> bool:
+        if not history:
+            return False  # No history, so assume it's relevant by default
+        history_relevance_prompt = PromptTemplate.from_template(
+            """<s> [INST] Determine if the chat history is useful for answering the following question based on the context provided. Answer only "yes" or "no".
+            [/INST] Question: {question}
+            [INST] Context: {context} [/INST]
+            [INST] Chat History: {history} [/INST]
+            [INST] Relevance: """
+        )
+        relevance_prompt = history_relevance_prompt.format(
+            question=query,
+            context=context,
+            history=history or "No previous conversation."
+        )
+        relevance_response = self.model.invoke(relevance_prompt).content.strip().lower()
+        print(relevance_response)
+        return "yes" in relevance_response
 
     def clear(self):
         self.vector_store_manager.clear()
