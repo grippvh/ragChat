@@ -6,7 +6,7 @@ from vector_store import VectorStoreManager
 from ingestion import Ingestor
 from langchain_community.chat_models import ChatOllama
 from langchain.prompts import PromptTemplate
-
+from transformers import pipeline
 
 def _build_context(results):
     return "\n\n---\n\n".join([doc.page_content for doc, _ in results])
@@ -19,6 +19,8 @@ class RagChat:
         self.ingestor = Ingestor(self.vector_store_manager)
         self.wrapper = DuckDuckGoSearchAPIWrapper(max_results=5)
         self.web_search_tool = DuckDuckGoSearchRun(api_wrapper=self.wrapper)
+        self.domain = None
+        self.classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
         self.ragPrompt = PromptTemplate.from_template(
             """
                 <s> [INST] You are a highly knowledgeable assistant for question-answering tasks. Use the following pieces 
@@ -54,10 +56,16 @@ class RagChat:
         results = self.vector_store_manager.similarity_search(query, k=5)
         context = _build_context(results)
         prompt = self.ragPrompt.format(history=history or "No previous conversation.", context=context, question=query)
-        response_text = self.model.invoke(prompt).content
-        if "i don't know" in response_text.lower():
-            return self._ask_with_general_knowledge(query, history)
-        return response_text
+        try:
+            if self._is_question_related_to_domain(query) is False:
+                return "I am afraid you query is not related to the domain you specified. Please change either the domain or the question."
+            response_text = self.model.invoke(prompt).content
+            if "i don't know" in response_text.lower():
+                return self._ask_with_general_knowledge(query, history)
+            return response_text
+        except Exception as e:
+            return "There was an issue connecting to the model service. Please make sure ollama is running and try again later."
+
 
     def ask_using_web_search(self, query, history=None):
         context = self.web_search_tool.invoke("current men chelsea squad")
@@ -70,6 +78,21 @@ class RagChat:
         prompt = self.basePrompt.format(history=history or "No previous conversation.", question=query)
         note = "Note: this answer is based on the model's general knowledge. \n"
         return note + self.model.invoke(prompt).content
+
+    def set_domain(self, domain):
+        if self.domain == domain:
+            return
+        self.domain = domain
+
+    def _is_question_related_to_domain(self, query):
+        if not self.domain:
+            return True  # in case user considers it's not needed
+
+        sequence_to_classify = query
+        candidate_labels = [self.domain]
+        similarity = self.classifier(sequence_to_classify, candidate_labels)['scores'][0]
+
+        return similarity > 0.1 # classifier is kinda strict so taking lower threshold
 
     def clear(self):
         self.vector_store_manager.clear()

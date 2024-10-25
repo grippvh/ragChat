@@ -83,6 +83,8 @@ def page():
         scan_data_folder()
 
     st.header("RagChat")
+    st.text_input("Domain", key="domain", placeholder="Enter domain")
+    st.session_state["assistant"].set_domain(st.session_state["domain"])
 
     st.subheader("Upload new document or provide a link")
 
