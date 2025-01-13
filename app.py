@@ -2,7 +2,7 @@
 import os
 import streamlit as st
 from streamlit_chat import message
-from rag import RagChat
+from llama_index_agent import RagChat
 from config import Config
 
 st.set_page_config(page_title="RagChat")
@@ -18,7 +18,7 @@ def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            agent_text = st.session_state["assistant"].ask(user_text, st.session_state["messages"][-30:])
+            agent_text = st.session_state["assistant"].ask(user_text)
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))

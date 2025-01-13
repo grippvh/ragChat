@@ -11,7 +11,7 @@ from transformers import pipeline
 def _build_context(results):
     return "\n\n---\n\n".join([doc.page_content for doc, _ in results])
 
-
+# OLD FILE NOT USED #TODO: delete
 class RagChat:
     def __init__(self, db_path = Config.DB_PATH):
         self.model = ChatOllama(model=Config.MODEL_NAME)

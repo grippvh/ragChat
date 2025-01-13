@@ -11,6 +11,7 @@ Actual Response: {actual_response}
 (Answer strictly with 'true' or 'false') Does the actual response match the expected response? 
 """
 
+#TODO: rewrite according to new logic
 
 class RagChatTest:
     def __init__(self):

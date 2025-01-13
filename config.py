@@ -7,7 +7,8 @@ class Config:
     TEST_DB_PATH = "test_db"
     DATA_PATH = "data"
     UNUSED_DATA_PATH = "unused_data"
-    MODEL_NAME = "llama3"
+    MODEL_NAME = "llama3.1"
+    #"llama3-groq-tool-use"
     REQUEST_HEADERS = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/56.0.2924.76 Safari/537.36',
