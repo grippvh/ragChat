@@ -8,6 +8,8 @@ from config import Config
 class VectorStoreManager:
     def __init__(self, db_path, jina_api_key):
         self.db_path = db_path
+        # todo: change embeddings to BAAI/bge-base-en-v1.5
+        # Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
         self.embedding_model = JinaEmbeddings(model_name='jina-embeddings-v2-base-en', trust_remote_code=True, jina_api_key=jina_api_key)
         self.vector_store = Chroma(
             collection_name=(db_path + "_chroma"),

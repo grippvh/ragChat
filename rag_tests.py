@@ -1,7 +1,9 @@
 import os
 
+from langchain_ollama import ChatOllama
+
 from config import Config
-from rag import RagChat
+from llama_index_agent import RagChat
 
 EVAL_PROMPT = """
 Question: {question}
@@ -43,7 +45,7 @@ class RagChatTest:
             question=question, expected_response=expected_response, actual_response=response_text
         )
 
-        evaluation_result = self.rag_chat.model.invoke(prompt)
+        evaluation_result = ChatOllama(model=Config.MODEL_NAME).invoke(prompt)
         evaluation_result_cleaned = evaluation_result.content.strip().lower()
 
         is_success = "true" in evaluation_result_cleaned

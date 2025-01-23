@@ -2,7 +2,6 @@ class Config:
     # JINA_API_KEY = os.getenv("JINA_API_KEY", "your_default_key")
     # COHERE_API_KEY = os.getenv("COHERE_API_KEY", "your_default_key")
     JINA_API_KEY = "jina_ba01f74af583437c80a14daa9ddf43f2FHVkdLV9s9gUWEsBYmicVIDahLX9"  # from https://jina.ai/embeddings
-    COHERE_API_KEY = "7oeDYIEeWooiPs1hLmJ9mwNKIn7SvwJSXQxoOSF9"
     DB_PATH = "db"
     TEST_DB_PATH = "test_db"
     DATA_PATH = "data"

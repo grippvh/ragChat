@@ -18,7 +18,7 @@ class RagChat:
         web_search_tool = FunctionTool.from_defaults(fn=self.web_search)
         rag_search_tool = FunctionTool.from_defaults(fn=self.rag_search)
         math_solver_tool = FunctionTool.from_defaults(fn=self.solve_math)
-        memory = ChatMemoryBuffer.from_defaults(token_limit=1500) #todo fix
+        memory = ChatMemoryBuffer.from_defaults(token_limit=1500)
         self.agent = ReActAgent.from_tools([rag_search_tool, web_search_tool, math_solver_tool], llm=Ollama(model=Config.MODEL_NAME), verbose=True,
                                       max_iterations=20,timeout=None,chat_history=None,memory=memory)
 
@@ -30,6 +30,7 @@ class RagChat:
         self.domain = None
         self.classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
+    # todo: use this tool only after rag
     def web_search(self, request: str):
         """Runs web search and gets information about the query.
          Use data fetched from this tool to answer the question.
@@ -39,7 +40,7 @@ class RagChat:
         print(res)
         return res
 
-
+    # todo: give priority
     def rag_search(self, query: str):
         """Runs local database search and gets the context for the query to help to answer the question.
         Use data fetched from this tool to answer the question."""
@@ -77,6 +78,7 @@ class RagChat:
         return similarity > 0.1 # classifier is kinda strict so taking lower threshold
 
     def ask(self, query: str):
+        #todo: check number transformer (5000=5.000)
         # print("\n MEMORY---------\n")
         # print(self.agent.memory.to_string())
         try:
