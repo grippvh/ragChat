@@ -10,7 +10,7 @@ You have access to the following tools:
 {tool_desc}
 
 whenever you need more information about the question ALWAYS call rag_search_tool before web_search_tool. You are allowed to call web_search_tool ONLY if you already tried rag_search_tool.
-you are allowed to answer the question based on your own knowledge database ONLY if you already tried rag_search_tool and web_search_tool and they did not returned enough context.
+
 
 ## Output Format
 

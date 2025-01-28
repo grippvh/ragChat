@@ -1,20 +1,30 @@
 import os
 import shutil
-from langchain_community.embeddings import JinaEmbeddings
+
+from langchain_core.embeddings import Embeddings
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from langchain_chroma import Chroma
 from config import Config
 
 
+class HuggingFaceEmbeddingAdapter(Embeddings):
+    def __init__(self, embedding_model):
+        self.embedding_model = embedding_model
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return self.embedding_model.get_text_embedding_batch(texts)
+
+    def embed_query(self, text: str) -> list[float]:
+        return self.embedding_model.get_text_embedding(text)
+
 class VectorStoreManager:
     def __init__(self, db_path, jina_api_key):
         self.db_path = db_path
-        # todo: change embeddings to BAAI/bge-base-en-v1.5
-        # Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-        self.embedding_model = JinaEmbeddings(model_name='jina-embeddings-v2-base-en', trust_remote_code=True, jina_api_key=jina_api_key)
+        self.embedding_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
         self.vector_store = Chroma(
             collection_name=(db_path + "_chroma"),
             persist_directory=self.db_path,
-            embedding_function=self.embedding_model
+            embedding_function=HuggingFaceEmbeddingAdapter(self.embedding_model)
         )
 
     # a solution that would check unique files was inspired by https://github.com/pixegami/rag-tutorial-v2/blob/main/populate_database.py

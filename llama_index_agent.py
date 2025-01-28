@@ -10,8 +10,10 @@ from transformers import pipeline
 from config import Config
 from ingestion import Ingestor
 from prompt import llama_index_prompt
-from rag import _build_context
 from vector_store import VectorStoreManager
+
+def _build_context(results):
+    return "\n\n---\n\n".join([doc.page_content for doc, _ in results])
 
 class RagChat:
     def __init__(self, db_path=Config.DB_PATH):
