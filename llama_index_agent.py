@@ -26,7 +26,7 @@ class RagChat:
 
         self.agent.update_prompts({"agent_worker:system_prompt": PromptTemplate(llama_index_prompt)})
         self.agent.reset()
-        self.vector_store_manager = VectorStoreManager(db_path, Config.JINA_API_KEY)
+        self.vector_store_manager = VectorStoreManager(db_path)
         self.ingestor = Ingestor(self.vector_store_manager)
         self.duck_duck_go_search = DuckDuckGoSearchResults()
         self.domain = None
@@ -36,6 +36,8 @@ class RagChat:
     def web_search(self, request: str):
         """Runs web search and gets information about the query.
          Use data fetched from this tool to answer the question.
+
+         PRIORITY: MEDIUM, SHOULD BE CALLED ONLY AFTER rag_search_tool
          """
         print("\n----RUNNING WEB SEARCH for " + request + "----")
         res = self.duck_duck_go_search.invoke(request)
@@ -45,7 +47,10 @@ class RagChat:
     # todo: give priority
     def rag_search(self, query: str):
         """Runs local database search and gets the context for the query to help to answer the question.
-        Use data fetched from this tool to answer the question."""
+        Use data fetched from this tool to answer the question.
+
+        PRIORITY: HIGHEST, SHOULD BE PRIORITIZED OVER web_search_tool
+        """
         print("\n----RUNNING RAG SEARCH for " + query + "----")
         results = self.vector_store_manager.similarity_search(query, k=3)
         context = _build_context(results)

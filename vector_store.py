@@ -18,7 +18,7 @@ class HuggingFaceEmbeddingAdapter(Embeddings):
         return self.embedding_model.get_text_embedding(text)
 
 class VectorStoreManager:
-    def __init__(self, db_path, jina_api_key):
+    def __init__(self, db_path):
         self.db_path = db_path
         self.embedding_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
         self.vector_store = Chroma(
