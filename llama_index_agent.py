@@ -1,4 +1,5 @@
 import numexpr
+import re
 from langchain_community.tools import DuckDuckGoSearchResults
 from llama_index.core import PromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
@@ -14,6 +15,8 @@ from vector_store import VectorStoreManager
 
 def _build_context(results):
     return "\n\n---\n\n".join([doc.page_content for doc, _ in results])
+
+
 
 class RagChat:
     def __init__(self, db_path=Config.DB_PATH):
@@ -85,16 +88,36 @@ class RagChat:
         return similarity > 0.1 # classifier is kinda strict so taking lower threshold
 
     def ask(self, query: str):
-        #todo: check number transformer (5000=5.000)
-        # print("\n MEMORY---------\n")
-        # print(self.agent.memory.to_string())
         try:
             if self._is_question_related_to_domain(query) is False:
                 return "I am afraid you query is not related to the domain you specified. Please change either the domain or the question."
-            return self.agent.chat(query).response
+            return self.agent.chat(normalize_numbers(query)).response
         except Exception as e:
             return "There was an issue connecting to the model service. Please make sure ollama is running and try again later." + str(e)
 
 
     def clear(self):
         self.vector_store_manager.clear()
+
+
+def normalize_numbers(query: str) -> str:
+    """
+    Normalizes numeric formats in the query.
+
+    1. Converts commas used as decimal separators (e.g., "3,14") into periods ("3.14").
+    2. Removes thousand separators (e.g., converts "5.000" to "5000") by finding numbers
+       that match the pattern for thousand-separated digits.
+    """
+    # replace commas between digits with a period (decimal separator normalization)
+    query = re.sub(r'(?<=\d),(?=\d)', '.', query)
+
+    # remove thousand separators: look for numbers like "1.234" or "12.345.678"
+    def remove_thousands(match):
+        # Remove all dots (thousand separators) from the matched string.
+        return match.group(0).replace('.', '')
+
+    # pattern matches numbers with one to three digits, then at least one group of a dot
+    # followed by exactly three digits, and word boundaries to avoid matching parts of a larger string.
+    query = re.sub(r'\b\d{1,3}(?:\.\d{3})+\b', remove_thousands, query)
+
+    return query

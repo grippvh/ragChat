@@ -1,5 +1,6 @@
 llama_index_prompt = """\
 You are designed to help with a variety of tasks, from answering questions to providing summaries to other types of analyses.
+Please format all numbers as follows: no thousand separators and use a period ('.') as the decimal separator
 
 ## Tools
 
