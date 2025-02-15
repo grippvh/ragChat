@@ -40,7 +40,7 @@ class RagChat:
         """Runs web search and gets information about the query.
          Use data fetched from this tool to answer the question.
 
-         PRIORITY: MEDIUM, SHOULD BE CALLED ONLY AFTER rag_search_tool
+
          """
         print("\n----RUNNING WEB SEARCH for " + request + "----")
         res = self.duck_duck_go_search.invoke(request)
@@ -52,7 +52,7 @@ class RagChat:
         """Runs local database search and gets the context for the query to help to answer the question.
         Use data fetched from this tool to answer the question.
 
-        PRIORITY: HIGHEST, SHOULD BE PRIORITIZED OVER web_search_tool
+
         """
         print("\n----RUNNING RAG SEARCH for " + query + "----")
         results = self.vector_store_manager.similarity_search(query, k=3)
@@ -64,6 +64,23 @@ class RagChat:
         """
         Safely evaluates a mathematical expression using numexpr.
         Returns the result as a string.
+        STRICTLY PROVIDE AN EXPRESSION IN A FORMAT SUITED FOR numexpr.evaluate(expression) from numexpr library
+        do not add "math." to expression, e.g: "math.sqrt(2.0485e+006) * 2000" should be "sqrt(2.0485e+006) * 2000"
+        Always provide and expect full numbers in every part of the expression. This rule applies both to inputs and to the interpretation of tool responses.
+
+        Do not use whitespaces in numbers.
+
+        - Always Use Observed Values:
+        When performing follow-up calculations, refer strictly to the numerical value returned by the math_solver_tool’s observation. Do not substitute or modify this number in your chain-of-thought.
+
+        - No Number Fabrication:
+        Under no circumstances should you generate or “hallucinate” a new value for a previously computed result. For example, if the math tool returns 2828427.1247461904 for an expression, that exact value must be used in any subsequent calculations.
+
+        - Pass Exact Observations for Further Calculations:
+        When the query instructs further operations (e.g., “divide the final answer by 3 and take a square root”), use the math tool’s output from the previous step directly in the new expression.
+
+        - Maintain Full Precision:
+        Always treat every number as exact (i.e., full numbers without rounding or abbreviations) unless the query explicitly requests rounding.
         """
         try:
             result = numexpr.evaluate(expression)
@@ -93,7 +110,7 @@ class RagChat:
                 return "I am afraid you query is not related to the domain you specified. Please change either the domain or the question."
             return self.agent.chat(normalize_numbers(query)).response
         except Exception as e:
-            return "There was an issue connecting to the model service. Please make sure ollama is running and try again later." + str(e)
+            return "There was an issue connecting to the model service. Please make sure ollama is running and try again later."
 
 
     def clear(self):
